@@ -3,16 +3,16 @@
 姓名：周恬恬  
 学号：202430224094
 ## 任务一 
-小组仓库地址：https://github.com/Systemteam-alwayswin/pi-hunnu-2026.git
-<img width="1969" height="1550" alt="image" src="https://github.com/user-attachments/assets/e603a1b8-8af0-4159-b553-05c883d0b159" />
+小组仓库地址：https://github.com/Systemteam-alwayswin/pi-hunnu-2026.git  
 本地克隆仓库：D:\pi-hunnu-2026
+<img width="1969" height="1550" alt="image" src="https://github.com/user-attachments/assets/e603a1b8-8af0-4159-b553-05c883d0b159" />
 <img width="1549" height="1418" alt="image" src="https://github.com/user-attachments/assets/9a912840-84f7-4269-8bc3-df9af2fe7727" />
 <img width="1420" height="604" alt="image" src="https://github.com/user-attachments/assets/c0bba676-4651-4609-9616-e71694b57c71" />
 ## 任务二 分析子模块功能与依赖关系  
-构建顺序：  
+### 构建顺序：  
 telemetry → schema → chord → tui → codemode → mcp → ai → durable → env → agent → coding-agent。  
 结合各模块的说明文档、package.json 和源码，自行分析构建涉及的以下文件夹:    
-模块分析表：  
+### 模块分析表：  
 
 | 模块 | 代码主要实现什么功能 | 本模块 build 执行什么、生成什么 | 直接依赖哪些内部模块 | 依据文件或代码位置 |
 | --- | --- | --- | --- | --- |
@@ -28,19 +28,21 @@ telemetry → schema → chord → tui → codemode → mcp → ai → durable �
 | **agent** (`@earendil-works/pi-agent-core`) | 有状态 agent：`Agent` 与 `agent-loop`、事件流订阅、工具执行、transport 抽象、proxy 与默认 stream 函数；不做持久化，持久化交给 durable。 | `tsc -p tsconfig.build.json` → `dist/`，`paths` 指向 `../ai/dist/index.d.ts` 与 `../ai/dist/providers/*.d.ts`。无打包。 | `@earendil-works/pi-ai`、`@earendil-works/pi-schema` | 功能：`packages/agent/README.md:3`、`src/agent.ts`、`src/agent-loop.ts`、`src/proxy.ts`、`src/index.ts:1-5`；build：`packages/agent/package.json:19-24`、`tsconfig.build.json:5-10`；依赖：`package.json:25-28`；import：`src/agent-loop.ts:20`、`src/types.ts:17` |
 | **coding-agent** (`@earendil-works/pi-coding-agent`) | 编码 agent CLI（`bin.pi`）：交互式 TUI、print/JSON、RPC 三种运行模式，内置 read/bash/edit/write 工具，扩展/技能/主题/包管理，会话与压缩，MCP 集成与 codemode 扩展；也是 npm 发布产物与可编译二进制入口。 | 两段式：① `build:unbundled` = `tsc` → 给 `dist/cli.js`、`dist/rpc-entry.js` 加可执行位 → `copy-assets` 复制主题 JSON、PNG、`export-html` 模板与 vendor 脚本；② `node ../../scripts/build-coding-agent-bundle.mjs` 用 esbuild 把 `dist/cli.js`、`dist/index.js`、`dist/rpc-entry.js` 打为 `dist/bundle/*` 分块 + `dist/bundle/cli.js` 启动器，并把 OAuth/bedrock 懒加载入口、`image-resize-worker`、codemode worker 各自打成独立文件。 | `@earendil-works/pi-agent-core`、`@earendil-works/pi-ai`、`@earendil-works/pi-codemode`、`@earendil-works/pi-mcp`、`@earendil-works/pi-tui`（**不依赖** chord / durable / env / telemetry / schema） | 功能：`packages/coding-agent/README.md:13-21`、`src/cli.ts`、`src/modes/`、`src/core/`、`src/extensions/`、`src/index.ts:1-40`；build：`packages/coding-agent/package.json:31-42`、`scripts/build-coding-agent-bundle.mjs:140-152,157-168,204-223`；依赖：`package.json:43-49`；import：`src/cli/args.ts:5`、`src/cli/auth-login.ts:2`、`src/core/extensions/loader.ts:11`、`src/extensions/codemode/execute.ts:26`、`src/bun/runtime-setup.ts:1` |  
 
-模块层级与依赖关系图：
+### 模块层级与依赖关系图：
+<img width="1191" height="1536" alt="pi-agent drawio" src="https://github.com/user-attachments/assets/247f1603-95e7-49e0-b577-7a4ecf77f257" />
+图源：
+[pi-agent.drawio](https://github.com/user-attachments/files/35234054/pi-agent.drawio)
 
 
-
-
-结合分析回答：  
+### 三个问题：  
 1.根目录与子模块中的 npm run build 分别读取什么配置、执行什么工作？  
   根目录的 build 只读根package.json里的两样东西：workspaces （决定子包之间能否互相解析）和scripts.build 。它不读 tsconfig、不并行、也不先清理。
   子模块进入各自目录执行本包脚本，实际工作是tsc -p tsconfig.build.json ，配置继承根tsconfig.base.json ，把src 编成dist 里的 js、.d.ts 和 sourcemap；需要内部依赖的包在paths里指向兄弟包的dist 。两个例外：ai 先跑模型目录生成再编译，并复制数据 JSON；coding-agent 先 tsc 再用 esbuild 打成 bundle。tui 的原生模块和 env 的 Rust daemon 都是单独脚本，不在根 build 链里。
   
 2.构建顺序和模块依赖有什么关系？相邻构建的模块是否一定互相依赖？  
   构建顺序就是依赖图的一个拓扑序，只是被写成了固定的一条串行链。顺序必须如此的原因很具体：编译时要读依赖包dist里的类型声明，coding-agent 的打包脚本更是缺了 ai 的产物就直接报错。
-  但相邻构建不等于互相依赖。10 组相邻模块里只有 4 组真有依赖，其余 6 组没有边；拓扑序本来就不唯一，把 tui、codemode、mcp 整块挪到别处，构建照样成立。
+  但相邻构建不等于互相依赖。10 组相邻模块里只有 4 组真有依赖，其余 6 组没有边；拓扑序本来就不唯一，把 tui、codemode、mcp 整块挪到别处，构建照样成立。  
+  
 3.选择一条涉及至少三个模块的依赖路径，说明这些模块如何分工。  
 coding-agent → agent-core → ai → schema （旁边挂着 telemetry）：  
 - schema ：定义什么形状的数据是合法的，提供 schema 构建器和校验闭包。  
