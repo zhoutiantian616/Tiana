@@ -8,6 +8,4 @@ github登录名：zhoutiantian616
 个人仓库地址：https://github.com/zhoutiantian616/Tiana  
 第一次实践报告：https://github.com/zhoutiantian616/Tiana/blob/main/pi_agent_practice1.docx
 
-#实践2
 
-<img width="1510" height="772" alt="image" src="https://github.com/user-attachments/assets/16cb3992-176c-4732-9d81-c1a99aafcdd4" />
