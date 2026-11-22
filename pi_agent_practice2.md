@@ -36,8 +36,15 @@ telemetry → schema → chord → tui → codemode → mcp → ai → durable �
 结合分析回答：  
 1.根目录与子模块中的 npm run build 分别读取什么配置、执行什么工作？  
   根目录的 build 只读根package.json里的两样东西：workspaces （决定子包之间能否互相解析）和scripts.build 。它不读 tsconfig、不并行、也不先清理。
-
   子模块进入各自目录执行本包脚本，实际工作是tsc -p tsconfig.build.json ，配置继承根tsconfig.base.json ，把src 编成dist 里的 js、.d.ts 和 sourcemap；需要内部依赖的包在paths里指向兄弟包的dist 。两个例外：ai 先跑模型目录生成再编译，并复制数据 JSON；coding-agent 先 tsc 再用 esbuild 打成 bundle。tui 的原生模块和 env 的 Rust daemon 都是单独脚本，不在根 build 链里。
   
 2.构建顺序和模块依赖有什么关系？相邻构建的模块是否一定互相依赖？  
-3.选择一条涉及至少三个模块的依赖路径，说明这些模块如何分工。
+  构建顺序就是依赖图的一个拓扑序，只是被写成了固定的一条串行链。顺序必须如此的原因很具体：编译时要读依赖包dist里的类型声明，coding-agent 的打包脚本更是缺了 ai 的产物就直接报错。
+  但相邻构建不等于互相依赖。10 组相邻模块里只有 4 组真有依赖，其余 6 组没有边；拓扑序本来就不唯一，把 tui、codemode、mcp 整块挪到别处，构建照样成立。
+3.选择一条涉及至少三个模块的依赖路径，说明这些模块如何分工。  
+coding-agent → agent-core → ai → schema （旁边挂着 telemetry）：  
+- schema ：定义什么形状的数据是合法的，提供 schema 构建器和校验闭包。  
+- ai ：负责怎么和模型说话，处理供应商协议、鉴权、流式输出和工具参数。  
+- agent-core ：负责一轮对话怎么推进，维护消息状态、执行工具调用、向外推送事件。  
+- coding-agent ：把上面这些装成一个能用的命令行产品，管 CLI/TUI/RPC、工具和扩展。  
+每层只依赖下层的类型化接口，不反向引用。
