@@ -12,6 +12,7 @@
 构建顺序：  
 telemetry → schema → chord → tui → codemode → mcp → ai → durable → env → agent → coding-agent。  
 结合各模块的说明文档、package.json 和源码，自行分析构建涉及的以下文件夹:    
+模块分析表：  
 
 | 模块 | 代码主要实现什么功能 | 本模块 build 执行什么、生成什么 | 直接依赖哪些内部模块 | 依据文件或代码位置 |
 | --- | --- | --- | --- | --- |
@@ -27,9 +28,16 @@ telemetry → schema → chord → tui → codemode → mcp → ai → durable �
 | **agent** (`@earendil-works/pi-agent-core`) | 有状态 agent：`Agent` 与 `agent-loop`、事件流订阅、工具执行、transport 抽象、proxy 与默认 stream 函数；不做持久化，持久化交给 durable。 | `tsc -p tsconfig.build.json` → `dist/`，`paths` 指向 `../ai/dist/index.d.ts` 与 `../ai/dist/providers/*.d.ts`。无打包。 | `@earendil-works/pi-ai`、`@earendil-works/pi-schema` | 功能：`packages/agent/README.md:3`、`src/agent.ts`、`src/agent-loop.ts`、`src/proxy.ts`、`src/index.ts:1-5`；build：`packages/agent/package.json:19-24`、`tsconfig.build.json:5-10`；依赖：`package.json:25-28`；import：`src/agent-loop.ts:20`、`src/types.ts:17` |
 | **coding-agent** (`@earendil-works/pi-coding-agent`) | 编码 agent CLI（`bin.pi`）：交互式 TUI、print/JSON、RPC 三种运行模式，内置 read/bash/edit/write 工具，扩展/技能/主题/包管理，会话与压缩，MCP 集成与 codemode 扩展；也是 npm 发布产物与可编译二进制入口。 | 两段式：① `build:unbundled` = `tsc` → 给 `dist/cli.js`、`dist/rpc-entry.js` 加可执行位 → `copy-assets` 复制主题 JSON、PNG、`export-html` 模板与 vendor 脚本；② `node ../../scripts/build-coding-agent-bundle.mjs` 用 esbuild 把 `dist/cli.js`、`dist/index.js`、`dist/rpc-entry.js` 打为 `dist/bundle/*` 分块 + `dist/bundle/cli.js` 启动器，并把 OAuth/bedrock 懒加载入口、`image-resize-worker`、codemode worker 各自打成独立文件。 | `@earendil-works/pi-agent-core`、`@earendil-works/pi-ai`、`@earendil-works/pi-codemode`、`@earendil-works/pi-mcp`、`@earendil-works/pi-tui`（**不依赖** chord / durable / env / telemetry / schema） | 功能：`packages/coding-agent/README.md:13-21`、`src/cli.ts`、`src/modes/`、`src/core/`、`src/extensions/`、`src/index.ts:1-40`；build：`packages/coding-agent/package.json:31-42`、`scripts/build-coding-agent-bundle.mjs:140-152,157-168,204-223`；依赖：`package.json:43-49`；import：`src/cli/args.ts:5`、`src/cli/auth-login.ts:2`、`src/core/extensions/loader.ts:11`、`src/extensions/codemode/execute.ts:26`、`src/bun/runtime-setup.ts:1` |  
 
-使用 Mermaid 或 draw.io 或 Power Point等 绘制一张模块层级与依赖关系图，图中包含上述模块，统一采用“使用方 → 被依赖方”的箭头方向，并说明层级划分依据。图中展示有依据的直接依赖；如包含开发依赖或可选依赖，应明确区分。提交可阅读的图及可编辑图源。  
+模块层级与依赖关系图：
+
+
+
 
 结合分析回答：  
 1.根目录与子模块中的 npm run build 分别读取什么配置、执行什么工作？  
+  根目录的 build 只读根package.json里的两样东西：workspaces （决定子包之间能否互相解析）和scripts.build 。它不读 tsconfig、不并行、也不先清理。
+
+  子模块进入各自目录执行本包脚本，实际工作是tsc -p tsconfig.build.json ，配置继承根tsconfig.base.json ，把src 编成dist 里的 js、.d.ts 和 sourcemap；需要内部依赖的包在paths里指向兄弟包的dist 。两个例外：ai 先跑模型目录生成再编译，并复制数据 JSON；coding-agent 先 tsc 再用 esbuild 打成 bundle。tui 的原生模块和 env 的 Rust daemon 都是单独脚本，不在根 build 链里。
+  
 2.构建顺序和模块依赖有什么关系？相邻构建的模块是否一定互相依赖？  
 3.选择一条涉及至少三个模块的依赖路径，说明这些模块如何分工。
