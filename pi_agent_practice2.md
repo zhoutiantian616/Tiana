@@ -4,7 +4,7 @@
 学号：202430224094
 ## 任务一 
 小组仓库地址：https://github.com/Systemteam-alwayswin/pi-hunnu-2026.git
-
+<img width="1969" height="1550" alt="image" src="https://github.com/user-attachments/assets/e603a1b8-8af0-4159-b553-05c883d0b159" />
 本地克隆仓库：D:\pi-hunnu-2026
 <img width="1549" height="1418" alt="image" src="https://github.com/user-attachments/assets/9a912840-84f7-4269-8bc3-df9af2fe7727" />
 <img width="1420" height="604" alt="image" src="https://github.com/user-attachments/assets/c0bba676-4651-4609-9616-e71694b57c71" />
