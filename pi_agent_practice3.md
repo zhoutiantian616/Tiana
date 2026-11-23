@@ -15,4 +15,8 @@ scripts.build:
 1.Node.js 版本要求在哪里？  
 根 package.json 中第 69–71 行的engines.node，值为>=22.19.0；  
 2.npm run build 实际从哪里读取命令？  
-根 package.json 第 15 行的`scripts.build` ，它本身只是 11 步`cd … && npm run build` 的调度链；每进一个子包，npm 读的是该包自己的`scripts.build` ，编译参数再由各包`tsconfig.build.json` 决定。
+根 package.json 第 15 行的`scripts.build` ，它本身只是 11 步`cd … && npm run build` 的调度链；每进一个子包，npm 读的是该包自己的`scripts.build` ，编译参数再由各包`tsconfig.build.json` 决定。  
+## 任务四 安装项目依赖  
+<img width="2323" height="716" alt="image" src="https://github.com/user-attachments/assets/9f99228b-31f4-40fc-a7ac-7096a38adc88" />
+
+
