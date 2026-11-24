@@ -33,7 +33,7 @@ scripts.build定义:
 - 根据 package.json 和 package-lock.json 解析、下载并安装依赖；锁文件与声明一致时使用锁定版本。  
 - 在本地建立 node_modules 等依赖目录，并关联工作区中的本地包。  
 - 安装项目需要的库和开发工具，例如编译器、打包工具。  
---ignore-scripts 跳过安装阶段自动触发的生命周期脚本，例如 postinstall 和 prepare；不影响后续主动执行 npm run build。  
+- --ignore-scripts 跳过安装阶段自动触发的生命周期脚本，例如 postinstall 和 prepare；不影响后续主动执行 npm run build。  
 这里没有 -g，安装的是当前项目的依赖。它不会把本地修改后的 Pi 自动安装成全局 pi 命令。命令来源见 Development，参数含义见 npm install 文档。
 
 <img width="2323" height="716" alt="image" src="https://github.com/user-attachments/assets/9f99228b-31f4-40fc-a7ac-7096a38adc88" />  
