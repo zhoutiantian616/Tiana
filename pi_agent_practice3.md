@@ -21,25 +21,27 @@ scripts.build定义:
 <img width="1705" height="1372" alt="image" src="https://github.com/user-attachments/assets/4721e394-6cf5-45bb-955a-c6b2dcb3d9bb" />  
 
 回答问题：  
-1.Node.js 版本要求在哪里？  
+1. Node.js 版本要求在哪里？  
 根 package.json 中第 69–71 行的engines.node，值为>=22.19.0；  
-2.npm run build 实际从哪里读取命令？  
-根 package.json 第 15 行的`scripts.build` ，它本身只是 11 步`cd … && npm run build` 的调度链；每进一个子包，npm 读的是该包自己的`scripts.build` ，编译参数再由各包`tsconfig.build.json` 决定。  
+2. npm run build 实际从哪里读取命令？  
+根 package.json 第 15 行的`scripts.build` ，它本身只是 11 步`cd … && npm run build` 的调度链；每进一个子包，npm 读的是该包自己的`scripts.build` ，编译参数再由各包`tsconfig.build.json` 决定。
+
 ## 任务四 安装项目依赖  
 执行安装：
 确认当前目录包含根 package.json，执行：npm install --ignore-scripts  
 该命令主要完成以下工作：  
--根据 package.json 和 package-lock.json 解析、下载并安装依赖；锁文件与声明一致时使用锁定版本。  
--在本地建立 node_modules 等依赖目录，并关联工作区中的本地包。  
--安装项目需要的库和开发工具，例如编译器、打包工具。  
+- 根据 package.json 和 package-lock.json 解析、下载并安装依赖；锁文件与声明一致时使用锁定版本。  
+- 在本地建立 node_modules 等依赖目录，并关联工作区中的本地包。  
+- 安装项目需要的库和开发工具，例如编译器、打包工具。  
 - --ignore-scripts 跳过安装阶段自动触发的生命周期脚本，例如 postinstall 和 prepare；不影响后续主动执行 npm run build。  
 这里没有 -g，安装的是当前项目的依赖。它不会把本地修改后的 Pi 自动安装成全局 pi 命令。命令来源见 Development，参数含义见 npm install 文档。
 
 <img width="2323" height="716" alt="image" src="https://github.com/user-attachments/assets/9f99228b-31f4-40fc-a7ac-7096a38adc88" />  
+
 ## 任务五 本地编译与构建产物验证  
-首次构建，仍在仓库根目录执行：npm run build  
+1. 首次构建，仍在仓库根目录执行：npm run build  
 首次构建需要联网获取模型目录数据。这里的“模型数据”指模型目录、能力等配置数据，不是下载大模型权重。本地客户端构建与模型推理服务是两件事。依据：README、AI 包脚本。  
-检查并运行构建产物：  
+2. 检查并运行构建产物：  
 Test-Path .\packages\coding-agent\dist\bundle\cli.js
 node .\packages\coding-agent\dist\bundle\cli.js --version  
 第一条应输出 True，第二条应输出当前源码对应的 Pi 版本。这个入口来自 CLI 包的 bin.pi 配置，见 packages/coding-agent/package.json。  
@@ -49,7 +51,7 @@ dist 保存构建产物。以后修改程序时应修改 src 下的源码，再�
 <img width="1709" height="456" alt="image" src="https://github.com/user-attachments/assets/4f338d34-1897-4d3d-a36f-9acf7aea761b" />  
 
 ## 任务六 启动本地源码版本并完成一次会话  
-1.先验证源码入口
+1. 先验证源码入口
 在仓库根目录执行：.\pi-test.bat --version  
 这个脚本名称包含 test，但它是运行本地源码的入口，不是执行整个项目测试套件。当前版本的 .bat 调用 .ps1，由 Node.js 加载源码解析器并运行 packages/coding-agent/src/cli.ts。依据：pi-test.bat、pi-test.ps1。  
 
@@ -64,9 +66,9 @@ dist 保存构建产物。以后修改程序时应修改 src 下的源码，再�
 <img width="2296" height="704" alt="image" src="https://github.com/user-attachments/assets/63ba2415-a943-4104-83db-46109df33529" />  
 
 回答问题：  
-1.本次如何确保运行的是本地源码？  
-用仓库根目录的`.\pi-test.bat` 启动，不要直接输入`pi` ——`pi` 可能是装的全局版本。看脚本内部就清楚了： pi-test.ps1 用`node --import source-resolver.ts` 加载源码解析器，然后直接执行`packages/coding-agent/src/cli.ts` ，既不读全局安装，也不经过`dist` 。再配合截图里的启动命令和`git rev-parse HEAD` 记录，就能说明运行的是本次 clone 的这份源码。
-2.源码入口与 dist/bundle/cli.js 入口分别适合什么场景？  
+1. 本次如何确保运行的是本地源码？  
+用仓库根目录的`.\pi-test.bat` 启动，不要直接输入`pi` ——`pi` 可能是装的全局版本。看脚本内部就清楚了： pi-test.ps1 用`node --import source-resolver.ts` 加载源码解析器，然后直接执行`packages/coding-agent/src/cli.ts` ，既不读全局安装，也不经过`dist` 。再配合截图里的启动命令和`git rev-parse HEAD` 记录，就能说明运行的是本次 clone 的这份源码。  
+2. 源码入口与 dist/bundle/cli.js 入口分别适合什么场景？  
 - 源码入口（`pi-test.bat` →`src/cli.ts` ） ：适合开发调试，改完代码直接启动就生效，不用重新构建；代价是启动慢一些，且依赖`node_modules` 和源码齐全。
 - `dist/bundle/cli.js` ：构建产物，接近发布形态，启动快、自包含，适合验证构建是否成功、演示和日常使用；缺点是它不会反映构建之后对源码的修改，改了源码必须重新构建。
 
