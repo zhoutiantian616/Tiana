@@ -10,12 +10,12 @@ console.error("[P4] Agent 即将请求模型"); // 新增
 const response = await streamFunction(config.model, llmContext, {  
 每次执行到这里，Agent 都准备把当前上下文交给模型调用函数。
 
-<img width="1416" height="643" alt="image" src="https://github.com/user-attachments/assets/5ba3446f-0fbc-4b9a-8c27-98a5150f973d" />  
+<img width="1442" height="751" alt="image" src="https://github.com/user-attachments/assets/01803bee-05ef-41dc-a22d-36b942d83c43" />  
 
 2. 在工具结果加入上下文后打印日志  
 找到原第 284 行的 currentContext.messages.push(result);，在它下方插入一行。日志写在 for 循环内，每写入一条工具结果就打印一次。  
 
-<img width="1442" height="751" alt="image" src="https://github.com/user-attachments/assets/01803bee-05ef-41dc-a22d-36b942d83c43" />  
+<img width="1416" height="643" alt="image" src="https://github.com/user-attachments/assets/5ba3446f-0fbc-4b9a-8c27-98a5150f973d" />  
 
 ## 任务二：重新编译并启动  
 保存源码。在有根目录 package.json 的项目目录中执行：npm run build  
